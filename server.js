@@ -2,6 +2,7 @@ const express = require('express');
 // Import and require mysql2
 const mysql = require('mysql2');
 const input = require("./lib/input.js");
+const intro = require("./lib/intro.js");
 
 const PORT = process.env.PORT || 3001;
 const app = express();
@@ -23,6 +24,7 @@ const db = mysql.createConnection(
   console.log(`Connected to the employees_db database.`)
 );
 
+console.log(intro);
 input.askQuestions();
 
 // Default response for any other request (Not Found)
@@ -30,6 +32,6 @@ app.use((req, res) => {
   res.status(404).end();
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// app.listen(PORT, () => {
+//   console.log(`Server running on port ${PORT}`);
+// });
