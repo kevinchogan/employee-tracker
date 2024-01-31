@@ -46,8 +46,8 @@ async function mainMenu() {
       roleTable(roles[0]);
       break;
     case "Add Role":
-      deptData = await prompt(addRole);
-      console.log(deptData);
+      roleData = await prompt(addRole);
+      console.log(roleData);
       break;
     case "View All Departments":
       const departments = await conn.query(selectDept);
