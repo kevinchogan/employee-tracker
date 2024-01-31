@@ -1,4 +1,5 @@
 const connection = require("./lib/connection.js");
+
 const {
   mainMenuQuestions,
   addRole,
@@ -6,12 +7,21 @@ const {
   addEmployee,
   updateEmpRole,
 } = require("./lib/input.js");
+
 const intro = require("./lib/intro.js");
+
 const {
   selectEmployees,
   selectRoles,
   selectDept,
 } = require("./lib/queries.js");
+
+const {
+  updateRoleArray, 
+  updateEmployeeArray, 
+  updateDeptArray 
+} = require("./lib/updates.js");
+
 const { prompt } = require("inquirer");
 const { employeeTable, roleTable, deptTable } = require("./lib/tables.js");
 let conn;
@@ -34,11 +44,15 @@ async function mainMenu() {
       employeeTable(employees[0]);
       break;
     case "Add Employee":
-      empData = await prompt(addEmployee);
+      let updatedAddEmp = await updateRoleArray(conn, addEmployee, 2);
+      updatedAddEmp = await updateEmployeeArray(conn, updatedAddEmp, 3);
+      empData = await prompt(updatedAddEmp);
       console.log(empData);
       break;
     case "Update Employee Role":
-      empData = await prompt(updateEmpRole);
+      let updatedUpRole = await updateEmployeeArray(conn, updateEmpRole, 0);
+      updatedUpRole = await updateRoleArray(conn, updatedUpRole, 1);
+      empData = await prompt(updatedUpRole);
       console.log(empData);
       break;
     case "View All Roles":
@@ -46,7 +60,8 @@ async function mainMenu() {
       roleTable(roles[0]);
       break;
     case "Add Role":
-      roleData = await prompt(addRole);
+      const updatedAddRole = await updateDeptArray(conn, addRole, 2);
+      roleData = await prompt(updatedAddRole);
       console.log(roleData);
       break;
     case "View All Departments":
