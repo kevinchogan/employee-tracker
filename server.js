@@ -23,7 +23,7 @@ const {
 } = require("./lib/updates.js");
 
 const { prompt } = require("inquirer");
-const { employeeTable, roleTable, deptTable } = require("./lib/tables.js");
+const { makeTable } = require("./lib/tables.js");
 let conn;
 
 async function start() {
@@ -38,10 +38,11 @@ async function mainMenu() {
   let deptData;
   let empData;
   let roleData;
+  
   switch (userChoice.topMenu) {
     case "View All Employees":
       const employees = await conn.query(selectEmployees);
-      employeeTable(employees[0]);
+      makeTable(employees[0]);
       break;
     case "Add Employee":
       let updatedAddEmp = await updateRoleArray(conn, addEmployee, 2);
@@ -57,7 +58,7 @@ async function mainMenu() {
       break;
     case "View All Roles":
       const roles = await conn.query(selectRoles);
-      roleTable(roles[0]);
+      makeTable(roles[0]);
       break;
     case "Add Role":
       const updatedAddRole = await updateDeptArray(conn, addRole, 2);
@@ -66,7 +67,7 @@ async function mainMenu() {
       break;
     case "View All Departments":
       const departments = await conn.query(selectDept);
-      deptTable(departments[0]);
+      makeTable(departments[0]);
       break;
     case "Add Department":
       deptData = await prompt(addDepartment);
