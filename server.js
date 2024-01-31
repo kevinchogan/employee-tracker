@@ -1,37 +1,65 @@
-const express = require('express');
-// Import and require mysql2
-const mysql = require('mysql2');
-const input = require("./lib/input.js");
+const connection = require("./lib/connection.js");
+const {
+  mainMenuQuestions,
+  addRole,
+  addDepartment,
+  addEmployee,
+  updateEmpRole,
+} = require("./lib/input.js");
 const intro = require("./lib/intro.js");
+const { selectEmployees, selectRoles, selectDept } = require("./lib/queries.js");
+const { prompt } = require("inquirer");
+const { employeeTable, roleTable, deptTable } = require("./lib/tables.js")
+let conn;
 
-const PORT = process.env.PORT || 3001;
-const app = express();
+async function start() {
+  console.log(intro);
+  conn = await connection;
+  mainMenu();
+}
 
-// Express middleware
-app.use(express.urlencoded({ extended: false }));
-app.use(express.json());
+async function mainMenu() {
+  const userChoice = await prompt(mainMenuQuestions);
+  let quit = false;
+  let deptData;
+  switch (userChoice.topMenu) {
+    case "View All Employees":
+      const employees = await conn.query(selectEmployees);
+      employeeTable(employees[0]);
+      break;
+    case "Add Employee":
+      const empData = await prompt(addEmployee);
+      console.log(empData);
+      break;
+    case "Update Employee Role":
+      break;
+    case "View All Roles":
+      const roles = await conn.query(selectRoles);
+      roleTable(roles[0]);
+      break;
+    case "Add Role":
+      deptData = await prompt(addRole);
+      console.log(deptData);
+      break;
+    case "View All Departments":
+      const departments = await conn.query(selectDept);
+      deptTable(departments[0])
+      break;
+    case "Add Department":
+      deptData = await prompt(addDepartment);
+      console.log(deptData)
+      break;
+    default:
+      quit = true;
+      break;
+  }
 
-// Connect to database
-const db = mysql.createConnection(
-  {
-    host: 'localhost',
-    // MySQL username,
-    user: 'root',
-    // MySQL password
-    password: '7@gma6#U^uB3dHNr',
-    database: 'employees_db'
-  },
-  console.log(`Connected to the employees_db database.`)
-);
+  if (quit) {
+    process.exit()
+  } else {
+    mainMenu();
+  }
+  
+}
 
-console.log(intro);
-input.askQuestions();
-
-// Default response for any other request (Not Found)
-app.use((req, res) => {
-  res.status(404).end();
-});
-
-// app.listen(PORT, () => {
-//   console.log(`Server running on port ${PORT}`);
-// });
+start();
