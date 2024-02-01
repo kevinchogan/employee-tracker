@@ -2,10 +2,10 @@ const connection = require("./lib/connection.js");
 
 const {
   mainMenuQuestions,
-  addRole,
-  addDepartment,
-  addEmployee,
-  updateEmpRole,
+  addRoleQuestions,
+  addDepartmentQuestions,
+  addEmployeeQuestions,
+  updateEmpRoleQuestions,
 } = require("./lib/input.js");
 
 const intro = require("./lib/intro.js");
@@ -17,13 +17,15 @@ const {
 } = require("./lib/queries.js");
 
 const {
-  updateRoleArray, 
-  updateEmployeeArray, 
-  updateDeptArray 
-} = require("./lib/updates.js");
+  updateRoleArray,
+  updateEmployeeArray,
+  updateDeptArray,
+} = require("./lib/refresh.js");
 
 const { prompt } = require("inquirer");
 const { makeTable } = require("./lib/tables.js");
+const { getEmployeeId, getRoleId, getDeptId } = require("./lib/search.js");
+const { addEmployee } = require("./lib/add.js");
 let conn;
 
 async function start() {
@@ -38,21 +40,45 @@ async function mainMenu() {
   let deptData;
   let empData;
   let roleData;
-  
+
   switch (userChoice.topMenu) {
     case "View All Employees":
       const employees = await conn.query(selectEmployees);
       makeTable(employees[0]);
       break;
     case "Add Employee":
-      let updatedAddEmp = await updateRoleArray(conn, addEmployee, 2);
-      updatedAddEmp = await updateEmployeeArray(conn, updatedAddEmp, 3);
-      empData = await prompt(updatedAddEmp);
-      console.log(empData);
+      let updatedAddEmpQuestions = await updateRoleArray(
+        conn,
+        addEmployeeQuestions,
+        2
+      );
+      updatedAddEmpQuestions = await updateEmployeeArray(
+        conn,
+        updatedAddEmpQuestions,
+        3
+      );
+      empData = await prompt(updatedAddEmpQuestions);
+      const managerId = await getEmployeeId(conn, empData.manager);
+      const roleId = await getRoleId(conn, empData.role);
+      await addEmployee(
+        conn,
+        empData.first_name,
+        empData.last_name,
+        roleId,
+        managerId
+      );
       break;
     case "Update Employee Role":
-      let updatedUpRole = await updateEmployeeArray(conn, updateEmpRole, 0);
-      updatedUpRole = await updateRoleArray(conn, updatedUpRole, 1);
+      let updatedUpRoleQuestions = await updateEmployeeArray(
+        conn,
+        updateEmpRoleQuestions,
+        0
+      );
+      updatedUpRoleQuestions = await updateRoleArray(
+        conn,
+        updatedUpRoleQuestions,
+        1
+      );
       empData = await prompt(updatedUpRole);
       console.log(empData);
       break;
@@ -61,8 +87,12 @@ async function mainMenu() {
       makeTable(roles[0]);
       break;
     case "Add Role":
-      const updatedAddRole = await updateDeptArray(conn, addRole, 2);
-      roleData = await prompt(updatedAddRole);
+      const updatedAddRoleQuestions = await updateDeptArray(
+        conn,
+        addRoleQuestions,
+        2
+      );
+      roleData = await prompt(updatedAddRoleQuestions);
       console.log(roleData);
       break;
     case "View All Departments":
@@ -70,7 +100,7 @@ async function mainMenu() {
       makeTable(departments[0]);
       break;
     case "Add Department":
-      deptData = await prompt(addDepartment);
+      deptData = await prompt(addDepartmentQuestions);
       console.log(deptData);
       break;
     default:
