@@ -9,15 +9,21 @@ const {
   updateEmpMgrQuestions,
   viewByManagerQuestions,
   viewByDepartmentQuestions,
+  deleteEmployeeQuestions,
+  deleteRoleQuestions,
+  deleteDepartmentQuestions,
 } = require("./lib/input.js");
 // Import the intro text
 const intro = require("./lib/intro.js");
 // Import select queries
 const {
-  selectEmployees,
-  selectRoles,
-  selectDept,
-  selectManagers,
+  selectEmployeesQuery,
+  selectRolesQuery,
+  selectDeptQuery,
+  selectManagersQuery,
+  deleteEmployeeQuery,
+  deleteRoleQuery,
+  deleteDepartmentQuery,
 } = require("./lib/queries.js");
 // Import functions for updating questions with latest data
 const {
@@ -63,7 +69,7 @@ async function mainMenu() {
   switch (userChoice.topMenu) {
     // View table of employees
     case "View All Employees":
-      employees = await conn.query(selectEmployees);
+      employees = await conn.query(selectEmployeesQuery);
       console.log("");
       makeTable(employees[0]);
       break;
@@ -81,7 +87,7 @@ async function mainMenu() {
 
     // View employees by all managers
     case "View Employees By All Managers":
-      managers = await conn.query(selectManagers);
+      managers = await conn.query(selectManagersQuery);
       for (let i = 0; i < managers[0].length; i++) {
         await makeManagerTable(conn, managers[0][i].manager_name);
       }
@@ -100,7 +106,7 @@ async function mainMenu() {
 
     // View employees by all departments
     case "View Employees By All Departments":
-      departments = await conn.query(selectDept);
+      departments = await conn.query(selectDeptQuery);
       for (let i = 0; i < departments[0].length; i++) {
         await makeDepartmentTable(conn, departments[0][i].Name);
       }
@@ -189,9 +195,24 @@ async function mainMenu() {
       await updateEmpManager(conn, managerId, empData.name, empData.manager);
       break;
 
+    // Remove selected employee
+    case "Remove Employee":
+      const updatedDeleteEmployeeQuestions = await updateEmployeeArray(
+        conn,
+        deleteEmployeeQuestions,
+        0,
+        false
+      );
+      empData = await prompt(updatedDeleteEmployeeQuestions);
+      await conn.query(deleteEmployeeQuery, empData.name);
+      console.log(`
+      ${empData.name} has been removed!
+`);
+      break;
+
     // View table of all roles
     case "View All Roles":
-      const roles = await conn.query(selectRoles);
+      const roles = await conn.query(selectRolesQuery);
       console.log("");
       makeTable(roles[0]);
       break;
@@ -212,9 +233,23 @@ async function mainMenu() {
       await addRole(conn, roleData.title, roleData.salary, departmentId);
       break;
 
+      // Remove selected role
+    case "Remove Role":
+      const updatedDeleteRoleQuestions = await updateRoleArray(
+        conn,
+        deleteRoleQuestions,
+        0
+      );
+      roleData = await prompt(updatedDeleteRoleQuestions);
+      await conn.query(deleteRoleQuery, roleData.name);
+      console.log(`
+      ${roleData.name} has been removed!
+`);
+      break;
+
     // View table of all departments
     case "View All Departments":
-      departments = await conn.query(selectDept);
+      departments = await conn.query(selectDeptQuery);
       console.log("");
       makeTable(departments[0]);
       break;
@@ -224,6 +259,22 @@ async function mainMenu() {
       deptData = await prompt(addDepartmentQuestions);
       await addDepartment(conn, deptData.name);
       break;
+
+
+    // Remove selected department
+    case "Remove Department":
+      const updatedDeleteDepartmentQuestions = await updateDeptArray(
+        conn,
+        deleteDepartmentQuestions,
+        0
+      );
+      deptData = await prompt(updatedDeleteDepartmentQuestions);
+      await conn.query(deleteDepartmentQuery, deptData.name);
+      console.log(`
+      ${deptData.name} has been removed!
+`);
+      break;
+        
 
     default:
       quit = true;
