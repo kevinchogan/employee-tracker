@@ -25,7 +25,7 @@ const {
 const { prompt } = require("inquirer");
 const { makeTable } = require("./lib/tables.js");
 const { getEmployeeId, getRoleId, getDeptId } = require("./lib/search.js");
-const { addEmployee } = require("./lib/add.js");
+const { addEmployee, addRole, addDepartment } = require("./lib/add.js");
 let conn;
 
 async function start() {
@@ -93,7 +93,8 @@ async function mainMenu() {
         2
       );
       roleData = await prompt(updatedAddRoleQuestions);
-      console.log(roleData);
+      const departmentId = await getDeptId(conn, roleData.department);
+      await addRole(conn, roleData.title, roleData.salary, departmentId);
       break;
     case "View All Departments":
       const departments = await conn.query(selectDept);
@@ -101,7 +102,7 @@ async function mainMenu() {
       break;
     case "Add Department":
       deptData = await prompt(addDepartmentQuestions);
-      console.log(deptData);
+      await addDepartment(conn, deptData.name);
       break;
     default:
       quit = true;
