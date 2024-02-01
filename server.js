@@ -26,6 +26,7 @@ const { prompt } = require("inquirer");
 const { makeTable } = require("./lib/tables.js");
 const { getEmployeeId, getRoleId, getDeptId } = require("./lib/search.js");
 const { addEmployee, addRole, addDepartment } = require("./lib/add.js");
+const { updateEmpRole } = require("./lib/update.js");
 let conn;
 
 async function start() {
@@ -40,6 +41,8 @@ async function mainMenu() {
   let deptData;
   let empData;
   let roleData;
+  let managerId;
+  let roleId;
 
   switch (userChoice.topMenu) {
     case "View All Employees":
@@ -58,8 +61,8 @@ async function mainMenu() {
         3
       );
       empData = await prompt(updatedAddEmpQuestions);
-      const managerId = await getEmployeeId(conn, empData.manager);
-      const roleId = await getRoleId(conn, empData.role);
+      managerId = await getEmployeeId(conn, empData.manager);
+      roleId = await getRoleId(conn, empData.role);
       await addEmployee(
         conn,
         empData.first_name,
@@ -79,8 +82,9 @@ async function mainMenu() {
         updatedUpRoleQuestions,
         1
       );
-      empData = await prompt(updatedUpRole);
-      console.log(empData);
+      empData = await prompt(updateEmpRoleQuestions);
+      roleId = await getRoleId(conn, empData.role);
+      await updateEmpRole(conn, roleId, empData.name, empData.role);
       break;
     case "View All Roles":
       const roles = await conn.query(selectRoles);
