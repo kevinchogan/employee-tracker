@@ -15,6 +15,8 @@ const {
   selectEmployees,
   selectRoles,
   selectDept,
+  selectManagers,
+  selectEmployeesByMgr,
 } = require("./lib/queries.js");
 // Import functions for updating questions with latest data
 const {
@@ -25,9 +27,15 @@ const {
 
 const { prompt } = require("inquirer"); //inquirer
 const { makeTable } = require("./lib/tables.js"); //displays tables
-const { getEmployeeId, getRoleId, getDeptId } = require("./lib/search.js"); //retrieves ids from db
+const {
+  getEmployeeId,
+  getRoleId,
+  getDeptId,
+  getManagers,
+} = require("./lib/search.js"); //retrieves ids from db
 const { addEmployee, addRole, addDepartment } = require("./lib/add.js"); //adds to db
 const { updateEmpRole, updateEmpManager } = require("./lib/update.js"); //updates db
+const { makeManagerTables } = require("./lib/manager.js");
 let conn;
 
 /* === start ===
@@ -50,13 +58,24 @@ async function mainMenu() {
   let roleData;
   let managerId;
   let roleId;
+  let employees;
 
   switch (userChoice.topMenu) {
     // View table of employees
     case "View All Employees":
-      const employees = await conn.query(selectEmployees);
+      employees = await conn.query(selectEmployees);
+      console.log("");
       makeTable(employees[0]);
       break;
+
+    // View employees by manager
+    case "View Employees By Manager":
+      const managers = await conn.query(selectManagers);
+      for (let i = 0; i < managers[0].length; i++) {
+        await makeManagerTables(conn, managers[0][i].manager_name);
+      }
+      break;
+
     // Add a new employee
     case "Add Employee":
       // Update questions with latest roles and employees
@@ -80,7 +99,6 @@ async function mainMenu() {
       } else {
         managerId = await getEmployeeId(conn, empData.manager);
       }
-
       // Add the employee
       await addEmployee(
         conn,
@@ -90,6 +108,7 @@ async function mainMenu() {
         managerId
       );
       break;
+
     // Update the role of an existing employee
     case "Update Employee Role":
       // Update questions with latest employees and roles
@@ -111,6 +130,7 @@ async function mainMenu() {
       // Update the role of the employee
       await updateEmpRole(conn, roleId, empData.name, empData.role);
       break;
+
     // View table of all roles
     case "Update Employee Manager":
       // Update questions with latest employees and roles
@@ -138,11 +158,14 @@ async function mainMenu() {
       // Update the role of the employee
       await updateEmpManager(conn, managerId, empData.name, empData.manager);
       break;
+
     // View table of all roles
     case "View All Roles":
       const roles = await conn.query(selectRoles);
+      console.log("");
       makeTable(roles[0]);
       break;
+
     // Add a new role
     case "Add Role":
       // Update questions with latest departments
@@ -158,16 +181,20 @@ async function mainMenu() {
       // Add the role
       await addRole(conn, roleData.title, roleData.salary, departmentId);
       break;
+
     // View table of all departments
     case "View All Departments":
       const departments = await conn.query(selectDept);
+      console.log("");
       makeTable(departments[0]);
       break;
+
     // Add a new department
     case "Add Department":
       deptData = await prompt(addDepartmentQuestions);
       await addDepartment(conn, deptData.name);
       break;
+
     default:
       quit = true;
       break;
