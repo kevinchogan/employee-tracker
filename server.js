@@ -58,11 +58,16 @@ async function mainMenu() {
       updatedAddEmpQuestions = await updateEmployeeArray(
         conn,
         updatedAddEmpQuestions,
-        3
+        3,
+        true
       );
       empData = await prompt(updatedAddEmpQuestions);
-      managerId = await getEmployeeId(conn, empData.manager);
       roleId = await getRoleId(conn, empData.role);
+      if (!empData.manager === "None") {
+        managerId = await getEmployeeId(conn, empData.manager);
+      } else {
+        managerId = 0;
+      }
       await addEmployee(
         conn,
         empData.first_name,
@@ -75,7 +80,8 @@ async function mainMenu() {
       let updatedUpRoleQuestions = await updateEmployeeArray(
         conn,
         updateEmpRoleQuestions,
-        0
+        0,
+        false
       );
       updatedUpRoleQuestions = await updateRoleArray(
         conn,
