@@ -34,7 +34,7 @@ Type 'npm start' to run the application
 
 ![alt Employee Tracker screenshot](./assets/capture.png)
 
-[Demo Video](tbd)
+[Demo Video](https://youtu.be/CPEJyDaeMLE)
 
 ## Credits
 
