@@ -6,6 +6,7 @@ const {
   addDepartmentQuestions,
   addEmployeeQuestions,
   updateEmpRoleQuestions,
+  updateEmpMgrQuestions,
 } = require("./lib/input.js");
 // Import the intro text
 const intro = require("./lib/intro.js");
@@ -26,7 +27,7 @@ const { prompt } = require("inquirer"); //inquirer
 const { makeTable } = require("./lib/tables.js"); //displays tables
 const { getEmployeeId, getRoleId, getDeptId } = require("./lib/search.js"); //retrieves ids from db
 const { addEmployee, addRole, addDepartment } = require("./lib/add.js"); //adds to db
-const { updateEmpRole } = require("./lib/update.js"); //updates db
+const { updateEmpRole, updateEmpManager } = require("./lib/update.js"); //updates db
 let conn;
 
 /* === start ===
@@ -74,11 +75,12 @@ async function mainMenu() {
       empData = await prompt(updatedAddEmpQuestions);
       // Get the ids for role and manager
       roleId = await getRoleId(conn, empData.role);
-      if (!empData.manager === "None") {
-        managerId = await getEmployeeId(conn, empData.manager);
-      } else {
+      if (empData.manager === "None") {
         managerId = 0;
+      } else {
+        managerId = await getEmployeeId(conn, empData.manager);
       }
+
       // Add the employee
       await addEmployee(
         conn,
@@ -108,6 +110,33 @@ async function mainMenu() {
       roleId = await getRoleId(conn, empData.role);
       // Update the role of the employee
       await updateEmpRole(conn, roleId, empData.name, empData.role);
+      break;
+    // View table of all roles
+    case "Update Employee Manager":
+      // Update questions with latest employees and roles
+      let updatedUpMgrQuestions = await updateEmployeeArray(
+        conn,
+        updateEmpMgrQuestions,
+        0,
+        false
+      );
+      updatedUpMgrQuestions = await updateEmployeeArray(
+        conn,
+        updatedUpMgrQuestions,
+        1,
+        true
+      );
+      // Ask questions
+      empData = await prompt(updatedUpMgrQuestions);
+      // Get the manager id
+      if (empData.manager === "None") {
+        console.log("Setting manager id to zero");
+        managerId = 0;
+      } else {
+        managerId = await getEmployeeId(conn, empData.manager);
+      }
+      // Update the role of the employee
+      await updateEmpManager(conn, managerId, empData.name, empData.manager);
       break;
     // View table of all roles
     case "View All Roles":
