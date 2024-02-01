@@ -7,6 +7,7 @@ const {
   addEmployeeQuestions,
   updateEmpRoleQuestions,
   updateEmpMgrQuestions,
+  viewByManagerQuestions,
 } = require("./lib/input.js");
 // Import the intro text
 const intro = require("./lib/intro.js");
@@ -23,19 +24,15 @@ const {
   updateRoleArray,
   updateEmployeeArray,
   updateDeptArray,
+  updateManagerArray,
 } = require("./lib/refresh.js");
 
 const { prompt } = require("inquirer"); //inquirer
 const { makeTable } = require("./lib/tables.js"); //displays tables
-const {
-  getEmployeeId,
-  getRoleId,
-  getDeptId,
-  getManagers,
-} = require("./lib/search.js"); //retrieves ids from db
+const { getEmployeeId, getRoleId, getDeptId } = require("./lib/search.js"); //retrieves ids from db
 const { addEmployee, addRole, addDepartment } = require("./lib/add.js"); //adds to db
 const { updateEmpRole, updateEmpManager } = require("./lib/update.js"); //updates db
-const { makeManagerTables } = require("./lib/manager.js");
+const { makeManagerTable } = require("./lib/manager.js");
 let conn;
 
 /* === start ===
@@ -59,6 +56,7 @@ async function mainMenu() {
   let managerId;
   let roleId;
   let employees;
+  let managers;
 
   switch (userChoice.topMenu) {
     // View table of employees
@@ -70,9 +68,20 @@ async function mainMenu() {
 
     // View employees by manager
     case "View Employees By Manager":
-      const managers = await conn.query(selectManagers);
+      const updatedViewByManagerQuestions = await updateManagerArray(
+        conn,
+        viewByManagerQuestions,
+        0
+      );
+      empData = await prompt(updatedViewByManagerQuestions);
+      await makeManagerTable(conn, empData.name);
+      break;
+
+    // View employees by all managers
+    case "View Employees By All Managers":
+      managers = await conn.query(selectManagers);
       for (let i = 0; i < managers[0].length; i++) {
-        await makeManagerTables(conn, managers[0][i].manager_name);
+        await makeManagerTable(conn, managers[0][i].manager_name);
       }
       break;
 
