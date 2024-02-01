@@ -8,6 +8,7 @@ const {
   updateEmpRoleQuestions,
   updateEmpMgrQuestions,
   viewByManagerQuestions,
+  viewByDepartmentQuestions,
 } = require("./lib/input.js");
 // Import the intro text
 const intro = require("./lib/intro.js");
@@ -17,7 +18,6 @@ const {
   selectRoles,
   selectDept,
   selectManagers,
-  selectEmployeesByMgr,
 } = require("./lib/queries.js");
 // Import functions for updating questions with latest data
 const {
@@ -33,6 +33,7 @@ const { getEmployeeId, getRoleId, getDeptId } = require("./lib/search.js"); //re
 const { addEmployee, addRole, addDepartment } = require("./lib/add.js"); //adds to db
 const { updateEmpRole, updateEmpManager } = require("./lib/update.js"); //updates db
 const { makeManagerTable } = require("./lib/manager.js");
+const { makeDepartmentTable } = require("./lib/department.js");
 let conn;
 
 /* === start ===
@@ -57,6 +58,7 @@ async function mainMenu() {
   let roleId;
   let employees;
   let managers;
+  let departments;
 
   switch (userChoice.topMenu) {
     // View table of employees
@@ -82,6 +84,25 @@ async function mainMenu() {
       managers = await conn.query(selectManagers);
       for (let i = 0; i < managers[0].length; i++) {
         await makeManagerTable(conn, managers[0][i].manager_name);
+      }
+      break;
+
+    // View employees by department
+    case "View Employees By Department":
+      const updatedViewByDepartmentQuestions = await updateDeptArray(
+        conn,
+        viewByDepartmentQuestions,
+        0
+      );
+      empData = await prompt(updatedViewByDepartmentQuestions);
+      await makeDepartmentTable(conn, empData.name);
+      break;
+
+    // View employees by all departments
+    case "View Employees By All Departments":
+      departments = await conn.query(selectDept);
+      for (let i = 0; i < departments[0].length; i++) {
+        await makeDepartmentTable(conn, departments[0][i].Name);
       }
       break;
 
@@ -193,7 +214,7 @@ async function mainMenu() {
 
     // View table of all departments
     case "View All Departments":
-      const departments = await conn.query(selectDept);
+      departments = await conn.query(selectDept);
       console.log("");
       makeTable(departments[0]);
       break;
